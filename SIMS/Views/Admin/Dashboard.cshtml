@@ -1,0 +1,240 @@
+﻿@model List<SIMS.Models.Incident>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Command Center";
+
+    var activeList = Model.Where(i => i.Status != "Archived")
+                          .OrderBy(i => i.Status == "Resolved" || i.Status == "Denied")
+                          .ThenByDescending(i => i.CreatedAt).ToList();
+
+    var pending = ViewBag.PendingCount;
+    var inProgress = ViewBag.InProgressCount;
+    var resolved = ViewBag.ResolvedCount; 
+}
+
+<style>
+    body {
+        background-color: aliceblue;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .glass-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid lightgray;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.05);
+    }
+
+    .stat-card {
+        padding: 20px;
+        text-align: center;
+        height: 100%;
+        transition: 0.3s;
+    }
+
+    .stat-number {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: darkslategray;
+    }
+
+    .status-pill {
+        padding: 6px 12px;
+        border-radius: 9999px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        display: inline-block;
+    }
+
+    .bg-pending {
+        background: cornsilk;
+        color: goldenrod;
+    }
+
+    .bg-assigned {
+        background: #e2e3ff;
+        color: #4169e1;
+    }
+
+    .bg-investigating {
+        background: lightblue;
+        color: darkblue;
+    }
+
+    .bg-resolved {
+        background: honeydew;
+        color: darkgreen;
+    }
+
+    .bg-denied {
+        background: mistyrose;
+        color: darkred;
+    }
+
+    .btn-assign {
+        background: mediumseagreen;
+        color: white;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        padding: 6px 16px;
+    }
+
+    .btn-cancel {
+        border: 1.5px solid orange;
+        color: darkorange;
+        background: transparent;
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 4px 12px;
+    }
+
+    .btn-archive {
+        color: white;
+        background: crimson;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-weight: 600;
+    }
+
+    .chart-container {
+        height: 160px;
+        position: relative;
+        width: 100%;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="glass-card stat-card">
+                <h6 class="text-muted small uppercase mb-2">Distribution</h6>
+                <div class="chart-container">
+                    <canvas id="incidentChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2"><div class="glass-card stat-card"><div class="text-muted small">Pending</div><div class="stat-number text-warning">@pending</div></div></div>
+        <div class="col-md-2"><div class="glass-card stat-card"><div class="text-muted small">In Progress</div><div class="stat-number text-primary">@inProgress</div></div></div>
+        <div class="col-md-2"><div class="glass-card stat-card"><div class="text-muted small">Resolved</div><div class="stat-number text-success">@resolved</div></div></div>
+
+        <div class="col-md-2">
+            <a href="/Admin/Archives" class="glass-card stat-card d-flex flex-column justify-content-center align-items-center text-decoration-none border-primary">
+                <i class="bi bi-archive-fill fs-2 text-primary mb-1"></i>
+                <div class="fw-bold text-primary">Archives</div>
+            </a>
+        </div>
+    </div>
+    <div class="glass-card p-4">
+        <h5 class="fw-bold mb-4">Recent Activity</h5>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 35%;">Incident Details</th>
+                        <th style="width: 20%;">Status & Handling</th>
+                        <th style="width: 30%;" class="text-center">Operations</th>
+                        <th style="width: 15%;" class="text-end pe-3">Priority</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in activeList)
+                    {
+                        <tr id="row-@item.IncidentID" class="@(item.Status == "Resolved" || item.Status == "Denied" ? "table-light opacity-75" : "")">
+                            <td>
+                                <div class="fw-bold text-uppercase @(item.Status == "Resolved" || item.Status == "Denied" ? "text-muted" : "")">@item.Title</div>
+                                <div class="text-muted small">ID #@item.IncidentID • @item.CreatedAt.ToString("dd MMM yyyy") • <strong><i class="bi bi-person"></i> @item.ReporterName</strong></div>
+                            </td>
+                            <td>
+                                <span class="status-pill bg-@item.Status.Replace(" ", "-").ToLower()">@item.Status</span>
+                                @if (item.Status != "Pending" && !string.IsNullOrEmpty(item.InvestigatorName))
+                                {
+                                    <div class="text-muted small mt-1">
+                                        <i class="bi bi-shield-check"></i> Assigned to: @item.InvestigatorName
+                                    </div>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (item.Status == "Pending")
+                                {
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <form asp-action="Assign" method="post" class="d-flex gap-2">
+                                            <input type="hidden" name="incidentId" value="@item.IncidentID" />
+                                            <select name="investigatorId" class="form-select form-select-sm" style="width:120px;" required>
+                                                <option value="">Assign To...</option>
+                                                @foreach (var inv in ViewBag.Investigators)
+                                                {
+                                                    <option value="@inv.UserID">@inv.Username</option>
+                                                }
+                                            </select>
+                                            <button type="submit" class="btn-assign btn-sm">Assign</button>
+                                        </form>
+                                        <button onclick="denyIncident(@item.IncidentID)" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle"></i></button>
+                                    </div>
+                                }
+                                else if (item.Status == "Assigned" || item.Status == "Investigating" || item.Status == "On Hold")
+                                {
+                                    <div class="d-flex align-items-center justify-content-center gap-3">
+                                        <span class="text-primary fw-bold small"><i class="bi bi-gear-fill spin me-1"></i> Active</span>
+                                        <button onclick="cancelAssignment(@item.IncidentID)" class="btn-cancel btn-sm px-3">Cancel</button>
+                                    </div>
+                                }
+                                else if (item.Status == "Resolved" || item.Status == "Denied")
+                                {
+                                    <button onclick="archiveIncident(@item.IncidentID)" class="btn-archive btn-sm px-4">Archive Incident</button>
+                                }
+                            </td>
+                            <td class="text-end pe-3">
+                                <span class="badge @(item.Priority == "High" || item.Priority == "Critical" ? "bg-danger" : "bg-warning text-dark")">@item.Priority</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        fetch('/Admin/GetChartData').then(r => r.json()).then(data => {
+            new Chart(document.getElementById('incidentChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(d => d.label),
+                    datasets: [{
+                        data: data.map(d => d.count),
+                        backgroundColor: ['#ffc107', '#0d6efd', '#198754'], 
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    maintainAspectRatio: false,
+                    cutout: '70%'
+                }
+            });
+        });
+
+        function cancelAssignment(id) {
+            Swal.fire({ title: 'Cancel Assignment?', text: "Resetting to Pending status.", icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes' })
+            .then((result) => { if (result.isConfirmed) $.post('/Admin/Cancel/' + id, function (res) { if (res.success) location.reload(); }); });
+        }
+
+        function denyIncident(id) {
+            if (confirm("Deny report? This will mark it as Denied and Critical Priority.")) {
+                window.location.href = '/Admin/Deny/' + id;
+            }
+        }
+
+        function archiveIncident(id) {
+            Swal.fire({ title: 'Archive Incident?', text: "Move this report to archives.", icon: 'question', showCancelButton: true, confirmButtonText: 'Yes' })
+            .then((result) => { if (result.isConfirmed) {
+                $.post('/Admin/Remove/' + id, function (res) { if (res.success) location.reload(); });
+            }});
+        }
+    </script>
+}

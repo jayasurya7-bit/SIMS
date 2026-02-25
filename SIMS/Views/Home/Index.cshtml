@@ -1,0 +1,176 @@
+﻿@{
+    Layout = "_Layout";
+    ViewData["Title"] = "SecureIMS Portal";
+}
+
+<style>
+    body {
+        background-color: WhiteSmoke;
+    }
+
+    .portal-container {
+        padding: 60px 0;
+    }
+
+    .portal-header {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+
+        .portal-header h1 {
+            font-weight: 800;
+            color: DarkSlateGray;
+            letter-spacing: -1px;
+        }
+
+        .portal-header p {
+            color: SlateGray;
+            font-size: 1.1rem;
+        }
+
+    .portal-card {
+        border: none;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+        background: White;
+        text-align: center;
+        padding: 45px 25px;
+        height: 100%;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+
+        .portal-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+        }
+
+    .icon-box {
+        width: 90px;
+        height: 90px;
+        margin: 0 auto 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+    }
+
+    .bg-reporter {
+        background-color: Lavender;
+        color: Indigo;
+    }
+
+    .bg-investigator {
+        background-color: LemonChiffon;
+        color: DarkGoldenRod;
+    }
+
+    .bg-admin {
+        background-color: MistyRose;
+        color: DarkRed;
+    }
+
+    .portal-card h3 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: DarkSlateGrey;
+    }
+
+    .portal-card p {
+        color: DimGray;
+        font-size: 0.95rem;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .btn-portal {
+        border-radius: 12px;
+        padding: 10px 35px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.85rem;
+        border: none;
+        transition: 0.3s;
+    }
+
+    .btn-reporter {
+        background-color: RoyalBlue;
+        color: White;
+    }
+
+        .btn-reporter:hover {
+            background-color: MidnightBlue;
+            color: White;
+        }
+
+    .btn-investigator {
+        background-color: darkorange;
+        background-color: DarkOrange;
+        color: White;
+    }
+
+        .btn-investigator:hover {
+            background-color: SaddleBrown;
+            color: White;
+        }
+
+    .btn-admin {
+        background-color: Crimson;
+        color: White;
+    }
+
+        .btn-admin:hover {
+            background-color: maroon;
+            background-color: DarkRed;
+            color: White;
+        }
+</style>
+
+<div class="portal-container">
+    <div class="portal-header">
+        <h1>Secure Incidents Management</h1>
+        <p>Choose your department portal to securely access the system</p>
+    </div>
+
+    <div class="container">
+        <div class="row g-4 justify-content-center">
+
+            <div class="col-md-4">
+                <div class="portal-card">
+                    <div class="icon-box bg-reporter">
+                        <span>👤</span>
+                    </div>
+                    <h3>Reporter</h3>
+                    <p>Report new security incidents, upload evidence, and track your report's progress.</p>
+                    <a asp-controller="Account" asp-action="ReporterLogin" class="btn btn-portal btn-reporter">Enter Portal</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="portal-card">
+                    <div class="icon-box bg-investigator">
+                        <span>🔍</span>
+                    </div>
+                    <h3>Investigator</h3>
+                    <p>Manage assigned cases, update status, and communicate with reporters.</p>
+                    <a asp-controller="Account" asp-action="InvestigatorLogin" class="btn btn-portal btn-investigator">Enter Portal</a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="portal-card">
+                    <div class="icon-box bg-admin">
+                        <span>🛡️</span>
+                    </div>
+                    <h3>Administrator</h3>
+                    <p>Control system settings, manage user roles, and monitor system-wide analytics.</p>
+                    <a asp-controller="Account" asp-action="AdminLogin" class="btn btn-portal btn-admin">Enter Portal</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

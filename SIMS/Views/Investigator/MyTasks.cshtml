@@ -1,0 +1,152 @@
+﻿@model List<SIMS.Models.Incident>
+@{
+    Layout = "_Layout";
+    
+    var sortedModel = Model.OrderBy(i => i.Status == "Resolved" || i.Status == "Archived")
+                          .ThenByDescending(i => i.CreatedAt)
+                          .ToList();
+}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h2 class="fw-bold text-slate-900">Assigned Incidents</h2>
+            <p class="text-muted mb-0">Manage and update your investigation tasks.</p>
+        </div>
+        <div class="badge bg-dark rounded-pill px-3 py-2">Total Tasks: @Model.Count</div>
+    </div>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-4 border-0 shadow-sm" role="alert" style="border-left: 5px solid #198754 !important;">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Message"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @foreach (var item in sortedModel)
+    {
+        bool isDone = item.Status == "Resolved" || item.Status == "Archived";
+
+        <div class="card task-card mb-4 p-3 shadow-sm border-start border-4 @(isDone ? "border-success bg-light opacity-75" : "border-primary")">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-1" style="cursor: pointer; color: #4f46e5;"
+                        onclick="showFullDetails('@item.Title', '@item.Category', '@item.Priority', '@Html.Raw(item.Description?.Replace("'", "\\'").Replace("\r\n", " "))', '@item.IncidentID', '@item.Location', '@item.ReporterName', '@item.FilePath')">
+                        @item.Title
+                    </h5>
+                    <div class="d-flex gap-3 align-items-center">
+                        <span class="badge bg-light text-primary border">#@item.IncidentID</span>
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i> @item.CreatedAt.ToString("HH:mm, dd MMM") • 
+                            <i class="bi bi-person-circle me-1"></i> <strong>@item.ReporterName</strong>
+                        </small>
+                        <span class="badge bg-info-subtle text-info border border-info-subtle">@item.Category</span>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    @if (isDone)
+                    {
+                        <div class="badge bg-success px-4 py-2 rounded-pill shadow-sm">
+                            <i class="bi bi-patch-check-fill me-1"></i> Resolved
+                        </div>
+                    }
+                    else
+                    {
+                        <form asp-action="UpdateStatus" method="post" class="d-flex gap-2">
+                            <input type="hidden" name="incId" value="@item.IncidentID" />
+                            <select name="status" class="form-select form-select-sm">
+                                <option value="Investigating" selected="@(item.Status == "Investigating")">Investigating</option>
+                                <option value="On Hold" selected="@(item.Status == "On Hold")">On Hold</option>
+                                <option value="Resolved" selected="@(item.Status == "Resolved")">Resolved</option>
+                            </select>
+                            <button type="submit" class="btn btn-primary btn-sm px-3">Update</button>
+                        </form>
+                        <a href="/Messages/Chat?incidentId=@item.IncidentID" class="btn btn-outline-secondary btn-sm px-3">Chat</a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@* Modal Section *@
+<div class="modal fade" id="incidentDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg" style="border-radius: 15px;">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-primary" id="m-id">#ID</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <h4 class="fw-bold mb-3" id="m-title">Title</h4>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="text-muted small fw-bold text-uppercase">Reporter</label>
+                        <p class="fw-semibold" id="m-reporter">---</p>
+                    </div>
+                    <div class="col-6">
+                        <label class="text-muted small fw-bold text-uppercase">Category</label>
+                        <p class="fw-semibold" id="m-category">---</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="text-muted small fw-bold text-uppercase">Priority</label>
+                        <p id="m-priority">---</p>
+                    </div>
+                    <div class="col-6">
+                        <label class="text-muted small fw-bold text-uppercase">Location</label>
+                        <p class="fw-semibold text-primary" id="m-location">---</p>
+                    </div>
+                </div>
+                <hr />
+                <label class="text-muted small fw-bold text-uppercase">Description</label>
+                <div class="bg-light p-3 rounded mt-2 border mb-3" id="m-description" style="white-space: pre-wrap;">
+                    No description available.
+                </div>
+                
+                <label class="text-muted small fw-bold text-uppercase">Evidence Image</label>
+                <div id="m-evidence-container" class="mt-2 text-center bg-light p-2 rounded border">
+                    <img id="m-img" src="" class="img-fluid rounded shadow-sm" style="max-height: 250px; display:none;" />
+                    <p id="m-no-img" class="text-muted small mb-0">No evidence uploaded.</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showFullDetails(title, category, priority, description, id, location, reporter, filePath) {
+        document.getElementById('m-id').innerText = 'Incident #' + id;
+        document.getElementById('m-title').innerText = title;
+        document.getElementById('m-category').innerText = category;
+        document.getElementById('m-description').innerText = description;
+        document.getElementById('m-location').innerText = (location && location !== "") ? location : "Not Specified";
+        document.getElementById('m-reporter').innerText = reporter;
+
+        const pElement = document.getElementById('m-priority');
+        pElement.innerText = priority;
+        pElement.className = 'badge ' + (priority === 'High' || priority === 'Critical' ? 'bg-danger' : 'bg-warning text-dark');
+
+        const imgElement = document.getElementById('m-img');
+        const noImgText = document.getElementById('m-no-img');
+
+        if (filePath && filePath !== "" && filePath !== "null") {
+            imgElement.src = filePath;
+            imgElement.style.display = 'inline-block';
+            noImgText.style.display = 'none';
+        } else {
+            imgElement.style.display = 'none';
+            noImgText.style.display = 'block';
+        }
+
+        var modalElement = document.getElementById('incidentDetailsModal');
+        var myModal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        myModal.show();
+    }
+</script>

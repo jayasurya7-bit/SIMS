@@ -1,0 +1,42 @@
+﻿@model List<SIMS.Models.InternalMessage>
+@{
+    Layout = "_Layout";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Incident Chat - ID: @ViewBag.IncidentID</h5>
+        </div>
+        <div class="card-body" style="height: 400px; overflow-y: scroll; background-color: #f8f9fa;">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var msg in Model)
+                {
+                    bool isMine = msg.SenderID.ToString() == Context.Session.GetString("UID");
+                    <div class="d-flex @(isMine ? "justify-content-end" : "justify-content-start") mb-3">
+                        <div class="p-3 rounded shadow-sm @(isMine ? "bg-success text-white" : "bg-white text-dark")" style="max-width: 70%;">
+                            <small class="d-block fw-bold border-bottom mb-1">@(isMine ? "You" : "Other Party")</small>
+                            <p class="mb-0">@msg.MessageBody</p>
+                            <small class="d-block text-end mt-1" style="font-size: 0.7rem;">@msg.SentAt.ToString("HH:mm")</small>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-center text-muted mt-5">No messages yet. Start the conversation!</p>
+            }
+        </div>
+        <div class="card-footer bg-white">
+            <form asp-controller="Messages" asp-action="Send" method="post" class="input-group">
+                <input type="hidden" name="incidentId" value="@ViewBag.IncidentID" />
+                <input name="messageBody" class="form-control" placeholder="Type your message here..." required autocomplete="off" />
+                <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+        </div>
+    </div>
+    <div class="mt-2">
+        <a href="javascript:history.back()" class="btn btn-sm btn-secondary">Go Back</a>
+    </div>
+</div>

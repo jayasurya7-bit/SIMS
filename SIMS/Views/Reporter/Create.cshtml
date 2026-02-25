@@ -1,0 +1,141 @@
+﻿@model SIMS.Models.Incident
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Report New Incident";
+}
+
+<style>
+    body {
+        background-color: WhiteSmoke;
+    }
+
+    .glass-card {
+        background-color: White;
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .custom-header {
+        background-color: RoyalBlue;
+        color: White;
+        padding: 1.5rem;
+    }
+
+    .form-label {
+        color: SlateGray;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        border: 1.5px solid LightGray;
+    }
+
+        .form-control:focus {
+            border-color: RoyalBlue;
+            box-shadow: 0 0 0 3px rgba(65, 105, 225, 0.1);
+            outline: none;
+        }
+
+    .btn-submit {
+        background-color: RoyalBlue;
+        color: White;
+        border: none;
+    }
+
+        .btn-submit:hover {
+            background-color: MidnightBlue;
+            color: White;
+        }
+
+    .text-muted-custom {
+        color: DarkGray;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-8">
+            <div class="card glass-card shadow-lg border-0">
+                <div class="card-header bg-primary text-white p-4 border-0">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-white bg-opacity-20 p-2 rounded-3 me-3">
+                            <i class="bi bi-shield-lock-fill fs-3"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 fw-bold">Submit Security Incident</h4>
+                            <small class="opacity-75">Provide detailed information for faster investigation.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Incident Title</label>
+                            <input asp-for="Title" class="form-control" placeholder="Brief title" required />
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label class="form-label fw-bold"><i class="bi bi-tags me-2"></i>Incident Category</label>
+                                <select asp-for="Category" class="form-select" required>
+                                    <option value="">-- Select Category --</option>
+                                    <option value="Phishing">Phishing Attack</option>
+                                    <option value="Malware">Malware / Virus Infection</option>
+                                    <option value="Data Breach">Data Breach / Leakage</option>
+                                    <option value="Unauthorized Access">Unauthorized Login</option>
+                                    <option value="DDoS Attack">DDoS / Network Attack</option>
+                                    <option value="Hardware Theft">Physical Theft (Laptop/Device)</option>
+                                    <option value="Social Engineering">Social Engineering</option>
+                                    <option value="Policy Violation">Security Policy Violation</option>
+                                    <option value="Other">Other Issues</option>
+                                </select>
+                            </div>
+
+                           
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Priority Level</label>
+                                <select asp-for="Priority" class="form-select" required>
+                                    <option value="Low">Low (Informational)</option>
+                                    <option value="Medium" selected>Medium (Standard)</option>
+                                    <option value="High">High (Immediate Action)</option>
+                                    <option value="Critical">Critical (Severe Impact)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold"><i class="bi bi-geo-alt me-2"></i>Affected Location</label>
+                            <input name="Location" class="form-control" placeholder="e.g., Finance Dept, Server Room" required />
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold"><i class="bi bi-camera me-2"></i>Upload Evidence (Image)</label>
+                            <input type="file" name="EvidenceFile" class="form-control" accept="image/*" />
+                            <small class="text-muted">Attach photos of the incident if available.</small>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold"><i class="bi bi-justify-left me-2"></i>Detailed Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="5" placeholder="Explain exactly what happened, when you noticed it, and any impact noticed..." required></textarea>
+                        </div>
+
+                        <hr class="my-4 text-muted opacity-25">
+
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn btn-primary px-5 py-2 shadow-sm fw-bold">
+                                <i class="bi bi-send-check-fill me-2"></i>Submit Report
+                            </button>
+                            <a asp-action="MyReports" class="btn btn-outline-secondary px-4 py-2">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,31 @@
+﻿@{
+    Layout = "_Layout";
+}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-4 card p-4 shadow-lg border-top border-primary border-5">
+            <h3 class="text-center text-primary">👤 Reporter Portal Login</h3>
+            <hr />
+            <form asp-controller="Account" asp-action="ProcessLogin" method="post">
+                <input type="hidden" name="expectedRole" value="2" />
+                <div class="mb-3">
+                    <label class="fw-bold">Username</label>
+                    <input name="u" class="form-control" placeholder="Enter your username" required />
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">Password</label>
+                    <input name="p" type="password" class="form-control" placeholder="******" required />
+                </div>
+                @if (ViewBag.Error != null)
+                {
+                    <p class="text-danger small">@ViewBag.Error</p>
+                }
+                <button type="submit" class="btn btn-primary w-100 fw-bold mb-3">Login to Report</button>
+
+                <a href="/" class="btn btn-link w-100 text-decoration-none text-muted small">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Portal Selection
+                </a>
+            </form>
+        </div>
+    </div>
+</div>

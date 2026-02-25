@@ -1,0 +1,81 @@
+﻿@model List<SIMS.Models.Incident>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Security Archives";
+}
+
+<style>
+    .bg-resolved {
+        background: honeydew;
+        color: darkgreen;
+    }
+
+    .bg-denied {
+        background: mistyrose;
+        color: darkred;
+    }
+
+    .status-pill {
+        padding: 4px 10px;
+        border-radius: 9999px;
+        font-weight: 600;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark"><i class="bi bi-archive-fill text-primary"></i> Security Archives</h2>
+            <p class="text-muted">History of all archived incidents.</p>
+        </div>
+        <a href="/Admin/Dashboard" class="btn btn-outline-primary fw-bold" style="border-radius: 10px;">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="glass-card p-4" style="background: white; border-radius: 16px; border: 1px solid lightgray;">
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-3">Incident</th>
+                        <th>Reporter</th>
+                        <th class="text-center">Resolution Status</th>
+                        <th>Category</th>
+                        <th class="text-end pe-3">Archive Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-3"><strong>@item.Title</strong><br /><small>#@item.IncidentID</small></td>
+                                <td>@item.ReporterName</td>
+                                <td class="text-center">
+                                    @if (item.Priority == "Critical")
+                                    {
+                                        <span class="status-pill bg-denied">Denied</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-pill bg-resolved">Resolved</span>
+                                    }
+                                </td>
+                                <td><span class="badge bg-light text-dark border">@item.Category</span></td>
+                                <td class="text-end pe-3 text-muted">@item.CreatedAt.ToString("dd MMM yyyy")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" class="text-center py-5 text-muted">No archived incidents found.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

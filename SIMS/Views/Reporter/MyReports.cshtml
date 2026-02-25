@@ -1,0 +1,84 @@
+﻿@model List<SIMS.Models.Incident>
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "My Reported Incidents";
+
+    var sortedModel = Model.OrderBy(i => i.Status == "Resolved" || i.Status == "Denied")
+                          .ThenByDescending(i => i.CreatedAt)
+                          .ToList();
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">My Reported Incidents</h2>
+        <a asp-action="Create" class="btn btn-danger shadow-sm" style="border-radius: 10px;">+ Report New Incident</a>
+    </div>
+
+    <div class="table-responsive shadow-sm rounded border">
+        <table class="table table-hover align-middle bg-white mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th class="ps-3">ID</th>
+                    <th>Title</th>
+                    <th>Date Reported</th>
+                    <th>Status</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (sortedModel != null && sortedModel.Any())
+                {
+                    foreach (var item in sortedModel)
+                    {
+                        bool isCompleted = item.Status == "Resolved" || item.Status == "Denied";
+
+                        <tr class="@(isCompleted ? "table-light opacity-75" : "")">
+                            <td class="ps-3"><strong>#@item.IncidentID</strong></td>
+                            <td>
+                                <span class="@(isCompleted ? "text-muted" : "fw-bold")">@item.Title</span>
+                            </td>
+                            <td class="text-muted small">@item.CreatedAt.ToString("dd-MMM-yyyy")</td>
+                            <td>
+                                @{
+                                    string badgeClass = item.Status switch
+                                    {
+                                        "Pending" => "bg-warning text-dark",
+                                        "Investigating" => "bg-primary",
+                                        "On Hold" => "bg-secondary",
+                                        "Resolved" => "bg-success",
+                                        "Denied" => "bg-danger",
+                                        _ => "bg-info"
+                                    };
+                                }
+                                <span class="badge @badgeClass" style="padding: 6px 12px; border-radius: 20px;">
+                                    @item.Status
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                @if (isCompleted)
+                                {
+                                    <small class="text-muted fw-bold">Case Closed</small>
+                                }
+                                else if (item.Status == "Pending")
+                                {
+                                    <small class="text-muted italic">Awaiting Assignment</small>
+                                }
+                                else if (item.Status == "Investigating" || item.Status == "On Hold")
+                                {
+                                    <a asp-controller="Messages" asp-action="Chat" asp-route-incidentId="@item.IncidentID"
+                                       class="btn btn-sm btn-outline-primary px-3 shadow-sm" style="border-radius: 8px;">
+                                        <i class="bi bi-chat-dots me-1"></i> Chat
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="5" class="text-center py-5 text-muted">You haven't reported any incidents yet.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

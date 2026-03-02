@@ -31,8 +31,16 @@
         <div class="card task-card mb-4 p-3 shadow-sm border-start border-4 @(isDone ? "border-success bg-light opacity-75" : "border-primary")">
             <div class="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <h5 class="fw-bold mb-1" style="cursor: pointer; color: #4f46e5;"
-                        onclick="showFullDetails('@item.Title', '@item.Category', '@item.Priority', '@Html.Raw(item.Description?.Replace("'", "\\'").Replace("\r\n", " "))', '@item.IncidentID', '@item.Location', '@item.ReporterName', '@item.FilePath')">
+                    <h5 class="fw-bold mb-1 task-title" style="cursor: pointer; color: #4f46e5;"
+                        data-title="@item.Title"
+                        data-category="@item.Category"
+                        data-priority="@item.Priority"
+                        data-desc="@item.Description"
+                        data-id="@item.IncidentID"
+                        data-loc="@item.Location"
+                        data-rep="@item.ReporterName"
+                        data-file="@item.FilePath"
+                        onclick="openTaskModal(this)">
                         @item.Title
                     </h5>
                     <div class="d-flex gap-3 align-items-center">
@@ -121,13 +129,22 @@
 </div>
 
 <script>
-    function showFullDetails(title, category, priority, description, id, location, reporter, filePath) {
+    function openTaskModal(element) {
+        const id = element.getAttribute('data-id');
+        const title = element.getAttribute('data-title');
+        const category = element.getAttribute('data-category');
+        const priority = element.getAttribute('data-priority');
+        const desc = element.getAttribute('data-desc');
+        const loc = element.getAttribute('data-loc');
+        const rep = element.getAttribute('data-rep');
+        const file = element.getAttribute('data-file');
+
         document.getElementById('m-id').innerText = 'Incident #' + id;
         document.getElementById('m-title').innerText = title;
         document.getElementById('m-category').innerText = category;
-        document.getElementById('m-description').innerText = description;
-        document.getElementById('m-location').innerText = (location && location !== "") ? location : "Not Specified";
-        document.getElementById('m-reporter').innerText = reporter;
+        document.getElementById('m-description').innerText = desc || "No description provided.";
+        document.getElementById('m-location').innerText = (loc && loc !== "") ? loc : "Not Specified";
+        document.getElementById('m-reporter').innerText = rep;
 
         const pElement = document.getElementById('m-priority');
         pElement.innerText = priority;
@@ -135,9 +152,8 @@
 
         const imgElement = document.getElementById('m-img');
         const noImgText = document.getElementById('m-no-img');
-
-        if (filePath && filePath !== "" && filePath !== "null") {
-            imgElement.src = filePath;
+        if (file && file !== "" && file !== "null") {
+            imgElement.src = file;
             imgElement.style.display = 'inline-block';
             noImgText.style.display = 'none';
         } else {

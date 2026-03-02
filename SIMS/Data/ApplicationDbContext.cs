@@ -98,7 +98,12 @@ namespace SIMS.Data
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 string sql = "UPDATE Incidents SET Status = @s WHERE IncidentID = @id";
-                if (status == "Denied")
+
+                if (status == "Archived")
+                {
+                    sql = "UPDATE Incidents SET Status = 'Archived', ArchivedAt = GETDATE() WHERE IncidentID = @id";
+                }
+                else if (status == "Denied")
                 {
                     sql = "UPDATE Incidents SET Status = 'Denied', Priority = 'Critical' WHERE IncidentID = @id";
                 }
@@ -213,6 +218,10 @@ namespace SIMS.Data
                 AssignedTo = rdr["AssignedTo"] == DBNull.Value ? (int?)null : (int)rdr["AssignedTo"],
                 CreatedAt = (DateTime)rdr["CreatedAt"]
             };
+            if (ColumnExists(rdr, "ArchivedAt"))
+            {
+                incident.ArchivedAt = rdr["ArchivedAt"] == DBNull.Value ? (DateTime?)null : (DateTime)rdr["ArchivedAt"];
+            }
             if (ColumnExists(rdr, "Location"))
                 incident.Location = rdr["Location"] == DBNull.Value ? "Not Specified" : rdr["Location"].ToString();
 

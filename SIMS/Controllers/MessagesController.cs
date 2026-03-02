@@ -23,6 +23,7 @@ namespace SIMS.Controllers
             var messages = db.GetMessages(incidentId);
             return View(messages);
         }
+
         [HttpPost]
         public IActionResult Send(int incidentId, string messageBody)
         {
@@ -30,7 +31,7 @@ namespace SIMS.Controllers
 
             if (string.IsNullOrEmpty(uidStr))
             {
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Index", "Home");
             }
 
             int senderId = int.Parse(uidStr);

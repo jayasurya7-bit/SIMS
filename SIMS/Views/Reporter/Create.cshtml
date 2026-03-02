@@ -54,6 +54,12 @@
     .text-muted-custom {
         color: DarkGray;
     }
+
+    .validation-summary-errors ul {
+        list-style: none;
+        padding-left: 0;
+        margin-bottom: 0;
+    }
 </style>
 
 <div class="container py-5">
@@ -74,9 +80,13 @@
 
                 <div class="card-body p-4 p-md-5">
                     <form asp-action="Create" method="post" enctype="multipart/form-data">
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4 py-2 small shadow-sm"></div>
+
                         <div class="mb-4">
                             <label class="form-label fw-bold">Incident Title</label>
                             <input asp-for="Title" class="form-control" placeholder="Brief title" required />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
                         </div>
 
                         <div class="row mb-4">
@@ -94,9 +104,8 @@
                                     <option value="Policy Violation">Security Policy Violation</option>
                                     <option value="Other">Other Issues</option>
                                 </select>
+                                <span asp-validation-for="Category" class="text-danger small"></span>
                             </div>
-
-                           
 
                             <div class="col-md-6">
                                 <label class="form-label fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Priority Level</label>
@@ -106,6 +115,7 @@
                                     <option value="High">High (Immediate Action)</option>
                                     <option value="Critical">Critical (Severe Impact)</option>
                                 </select>
+                                <span asp-validation-for="Priority" class="text-danger small"></span>
                             </div>
                         </div>
 
@@ -113,14 +123,20 @@
                             <label class="form-label fw-bold"><i class="bi bi-geo-alt me-2"></i>Affected Location</label>
                             <input name="Location" class="form-control" placeholder="e.g., Finance Dept, Server Room" required />
                         </div>
+
                         <div class="mb-4">
                             <label class="form-label fw-bold"><i class="bi bi-camera me-2"></i>Upload Evidence (Image)</label>
                             <input type="file" name="EvidenceFile" class="form-control" accept="image/*" />
-                            <small class="text-muted">Attach photos of the incident if available.</small>
+
+                            <span class="text-danger small fw-bold">@Html.ValidationMessage("EvidenceFile")</span>
+
+                            <small class="text-muted d-block mt-1">Attach photos of the incident if available (Max 5MB, JPG/PNG).</small>
                         </div>
+
                         <div class="mb-4">
                             <label class="form-label fw-bold"><i class="bi bi-justify-left me-2"></i>Detailed Description</label>
                             <textarea asp-for="Description" class="form-control" rows="5" placeholder="Explain exactly what happened, when you noticed it, and any impact noticed..." required></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
                         </div>
 
                         <hr class="my-4 text-muted opacity-25">
@@ -139,3 +155,8 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}

@@ -25,6 +25,7 @@
         public DateTime CreatedAt { get; set; }
         public string ReporterName { get; set; }
         public string InvestigatorName { get; set; }
+        public DateTime? ArchivedAt { get; set; }
     }
 
     public class InternalMessage

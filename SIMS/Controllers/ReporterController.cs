@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SIMS.Data;
 using SIMS.Models;
+using Microsoft.AspNetCore.Hosting;
 
 namespace SIMS.Controllers
 {
@@ -8,27 +9,23 @@ namespace SIMS.Controllers
     public class ReporterController : Controller
     {
         private readonly ApplicationDbContext db;
+        private readonly IWebHostEnvironment _env;
 
-        public ReporterController(ApplicationDbContext _db)
+        public ReporterController(ApplicationDbContext _db, IWebHostEnvironment env)
         {
             db = _db;
+            _env = env;
         }
 
         public IActionResult MyReports()
         {
             string uid = HttpContext.Session.GetString("UID");
-            if (string.IsNullOrEmpty(uid))
-                return RedirectToAction("ReporterLogin", "Account");
-
             var reports = db.GetIncidentsByReporter(int.Parse(uid));
             return View(reports);
         }
 
         public IActionResult Create()
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("UID")))
-                return RedirectToAction("ReporterLogin", "Account");
-
             return View();
         }
 
@@ -36,8 +33,6 @@ namespace SIMS.Controllers
         public IActionResult Create(Incident inc, string Location, IFormFile EvidenceFile)
         {
             string userIdStr = HttpContext.Session.GetString("UID");
-            if (string.IsNullOrEmpty(userIdStr))
-                return RedirectToAction("ReporterLogin", "Account");
 
             if (EvidenceFile != null && EvidenceFile.Length > 0)
             {
@@ -56,7 +51,7 @@ namespace SIMS.Controllers
                     return View(inc);
                 }
 
-                string uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                string uploadDir = Path.Combine(_env.WebRootPath, "uploads");
                 if (!Directory.Exists(uploadDir))
                     Directory.CreateDirectory(uploadDir);
 

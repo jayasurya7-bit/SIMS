@@ -14,14 +14,9 @@ namespace SIMS.Controllers
 
         public IActionResult Dashboard(string statusFilter)
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("UID")))
-            {
-                return RedirectToAction("AdminLogin", "Account");
-            }
             var incidents = db.GetAllIncidents();
 
             ViewBag.PendingCount = incidents.Count(i => i.Status == "Pending");
-
             ViewBag.InProgressCount = incidents.Count(i =>
                 i.Status == "Assigned" || i.Status == "Investigating" || i.Status == "On Hold");
             ViewBag.ResolvedCount = incidents.Count(i =>

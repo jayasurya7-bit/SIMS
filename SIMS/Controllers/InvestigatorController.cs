@@ -12,11 +12,10 @@ namespace SIMS.Controllers
         {
             db = _db;
         }
+
         public IActionResult MyTasks()
         {
             string uid = HttpContext.Session.GetString("UID");
-            if (string.IsNullOrEmpty(uid)) return RedirectToAction("InvestigatorLogin", "Account");
-
             var tasks = db.GetAssignedIncidents(int.Parse(uid));
             return View(tasks);
         }

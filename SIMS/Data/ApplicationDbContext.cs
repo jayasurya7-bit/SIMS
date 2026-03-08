@@ -200,7 +200,12 @@ namespace SIMS.Data
             var list = new List<InternalMessage>();
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string sql = "SELECT * FROM InternalMessages WHERE IncidentID=@i ORDER BY SentAt ASC";
+                string sql = @"SELECT m.*, u.Username AS SenderName 
+                       FROM InternalMessages m 
+                       JOIN Users u ON m.SenderID = u.UserID 
+                       WHERE m.IncidentID = @i 
+                       ORDER BY m.SentAt ASC";
+
                 SqlCommand cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@i", incidentId);
                 conn.Open();
@@ -213,7 +218,8 @@ namespace SIMS.Data
                         IncidentID = (int)rdr["IncidentID"],
                         SenderID = (int)rdr["SenderID"],
                         MessageBody = rdr["MessageBody"].ToString(),
-                        SentAt = (DateTime)rdr["SentAt"]
+                        SentAt = (DateTime)rdr["SentAt"],
+                        SenderName = rdr["SenderName"].ToString() 
                     });
                 }
             }

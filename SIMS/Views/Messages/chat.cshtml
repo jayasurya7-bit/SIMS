@@ -14,12 +14,12 @@
                 foreach (var msg in Model)
                 {
                     bool isMine = msg.SenderID.ToString() == Context.Session.GetString("UID");
-                    <div class="d-flex @(isMine ? "justify-content-end" : "justify-content-start") mb-3">
-                        <div class="p-3 rounded shadow-sm @(isMine ? "bg-success text-white" : "bg-white text-dark")" style="max-width: 70%;">
-                            <small class="d-block fw-bold border-bottom mb-1">@(isMine ? "You" : "Other Party")</small>
-                            <p class="mb-0">@msg.MessageBody</p>
-                            <small class="d-block text-end mt-1" style="font-size: 0.7rem;">@msg.SentAt.ToString("HH:mm")</small>
-                        </div>
+                    <div class="p-3 rounded shadow-sm @(isMine ? "bg-success text-white" : "bg-white text-dark")" style="max-width: 70%;">
+                        <small class="d-block fw-bold border-bottom mb-1">
+                            @(isMine ? "You" : msg.SenderName)
+                        </small>
+                        <p class="mb-0">@msg.MessageBody</p>
+                        <small class="d-block text-end mt-1" style="font-size: 0.7rem;">@msg.SentAt.ToString("HH:mm")</small>
                     </div>
                 }
             }

@@ -37,23 +37,23 @@ namespace SIMS.Controllers
             if (EvidenceFile != null && EvidenceFile.Length > 0)
             {
                 string[] allowedExtensions = { ".jpg", ".jpeg", ".png" };
+                string[] allowedMimeTypes = { "image/jpeg", "image/png" };
                 string extension = Path.GetExtension(EvidenceFile.FileName).ToLower();
 
-                if (!allowedExtensions.Contains(extension))
+                if (!allowedExtensions.Contains(extension) || !allowedMimeTypes.Contains(EvidenceFile.ContentType))
                 {
-                    ModelState.AddModelError("", "Only JPG, JPEG, and PNG image files are allowed.");
+                    ModelState.AddModelError("EvidenceFile", "Only JPG, JPEG, and PNG image files are allowed.");
                     return View(inc);
                 }
 
                 if (EvidenceFile.Length > 5 * 1024 * 1024)
                 {
-                    ModelState.AddModelError("", "File size must be less than 5 MB.");
+                    ModelState.AddModelError("EvidenceFile", "File size must be less than 5 MB.");
                     return View(inc);
                 }
 
                 string uploadDir = Path.Combine(_env.WebRootPath, "uploads");
-                if (!Directory.Exists(uploadDir))
-                    Directory.CreateDirectory(uploadDir);
+                if (!Directory.Exists(uploadDir)) Directory.CreateDirectory(uploadDir);
 
                 string fileName = Guid.NewGuid().ToString() + extension;
                 string filePath = Path.Combine(uploadDir, fileName);
@@ -70,8 +70,12 @@ namespace SIMS.Controllers
             inc.Location = Location;
 
             if (db.CreateIncident(inc))
+            {
+                TempData["SuccessMessage"] = "Incident reported successfully with evidence!";
                 return RedirectToAction("MyReports");
+            }
 
+            ModelState.AddModelError("", "An error occurred while saving the report.");
             return View(inc);
         }
     }

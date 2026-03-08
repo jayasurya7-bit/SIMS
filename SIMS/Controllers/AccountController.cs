@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SIMS.Data;
-using SIMS.Helpers;
+// REMOVED: using SIMS.Helpers;  // PasswordHelper is gone
 
 namespace SIMS.Controllers
 {
@@ -18,8 +18,9 @@ namespace SIMS.Controllers
         [HttpPost]
         public IActionResult ProcessLogin(string u, string p, int expectedRole)
         {
-            string hashedPassword = PasswordHelper.HashPassword(p);
-            var user = db.ValidateUser(u, hashedPassword);
+            // REMOVED: string hashedPassword = PasswordHelper.HashPassword(p);
+            // Now using plain password directly
+            var user = db.ValidateUser(u, p);  // Passing plain password, not hash
 
             if (user != null && user.RoleID == expectedRole)
             {

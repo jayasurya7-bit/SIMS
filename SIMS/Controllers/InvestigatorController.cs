@@ -16,10 +16,14 @@ namespace SIMS.Controllers
 
         public IActionResult MyTasks()
         {
-            string uid = HttpContext.Session.GetString("UID");
-            if (string.IsNullOrEmpty(uid)) return RedirectToAction("Index", "Home");
+            string uidStr = HttpContext.Session.GetString("UID");
 
-            var allTasks = db.GetAssignedIncidents(int.Parse(uid));
+            if (!int.TryParse(uidStr, out int uid))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var allTasks = db.GetAssignedIncidents(uid);
 
             var activeTasks = allTasks.Where(t => t.Status == "Assigned" ||
                                                   t.Status == "Investigating" ||
@@ -31,14 +35,20 @@ namespace SIMS.Controllers
             ViewBag.ActiveCount = activeTasks.Count;
             ViewBag.ResolvedCount = resolvedTasks.Count;
             ViewBag.TotalCount = activeTasks.Count + resolvedTasks.Count;
-
             ViewBag.ResolvedTasks = resolvedTasks;
+
             return View(activeTasks);
         }
 
         [HttpPost]
         public IActionResult UpdateStatus(int incId, string status)
         {
+            string[] allowedStatuses = { "Investigating", "On Hold", "Resolved" };
+            if (!allowedStatuses.Contains(status))
+            {
+                return BadRequest("Invalid status update.");
+            }
+
             bool success = db.UpdateIncidentStatus(incId, status);
             if (success)
             {

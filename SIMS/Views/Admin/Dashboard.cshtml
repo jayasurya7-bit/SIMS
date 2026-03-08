@@ -3,13 +3,10 @@
     Layout = "_Layout";
     ViewData["Title"] = "Command Center";
 
-    var activeList = Model.Where(i => i.Status != "Archived")
-                          .OrderBy(i => i.Status == "Resolved" || i.Status == "Denied")
-                          .ThenByDescending(i => i.CreatedAt).ToList();
-
+    var activeList = Model;
     var pending = ViewBag.PendingCount;
     var inProgress = ViewBag.InProgressCount;
-    var resolved = ViewBag.ResolvedCount; 
+    var resolved = ViewBag.ResolvedCount;
 }
 
 <style>
@@ -118,10 +115,137 @@
         position: relative;
         width: 100%;
     }
+
+    /* Search & Filter Styles */
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        margin-bottom: 25px;
+        border: 1px solid lightgray;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+
+    .search-box {
+        background: white;
+        border-radius: 30px;
+        padding: 5px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 1px solid #dee2e6;
+        margin-bottom: 20px;
+    }
+
+        .search-box input {
+            border: none;
+            border-radius: 30px;
+            padding: 10px 20px;
+            width: 100%;
+        }
+
+            .search-box input:focus {
+                outline: none;
+                box-shadow: none;
+            }
+
+        .search-box button {
+            border-radius: 30px;
+            padding: 10px 25px;
+            white-space: nowrap;
+        }
+
+    .filter-dropdown {
+        width: 100%;
+        border-radius: 10px;
+        padding: 8px 15px;
+        border: 1.5px solid #dee2e6;
+        background-color: white;
+        font-weight: 500;
+        color: #495057;
+        cursor: pointer;
+    }
+
+        .filter-dropdown:focus {
+            outline: none;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        }
+
+    .filter-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        margin-bottom: 8px;
+        margin-left: 10px;
+    }
+
+    .active-filters {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 15px 20px;
+        margin-top: 20px;
+        border: 1px dashed #dee2e6;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .filter-badge {
+        background: #e9ecef;
+        padding: 6px 15px;
+        border-radius: 30px;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .clear-filters {
+        color: #dc3545;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        margin-left: auto;
+    }
+
+        .clear-filters:hover {
+            text-decoration: underline;
+        }
+
+    .results-summary {
+        color: #6c757d;
+        font-size: 0.95rem;
+        margin: 15px 0;
+        padding: 0 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .table thead th {
+        background: #f8f9fa;
+        color: #495057;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.8rem;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-priority {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.75rem;
+    }
 </style>
+
 <div class="container py-5">
+    <!-- Stats Cards -->
     <div class="row g-4 mb-5">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="glass-card stat-card">
                 <h6 class="text-muted small uppercase mb-2">Distribution</h6>
                 <div class="chart-container">
@@ -129,26 +253,123 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-2"><div class="glass-card stat-card"><div class="text-muted small">Pending</div><div class="stat-number text-warning">@pending</div></div></div>
-        <div class="col-md-2"><div class="glass-card stat-card"><div class="text-muted small">In Progress</div><div class="stat-number text-primary">@inProgress</div></div></div>
-        <div class="col-md-2"><div class="glass-card stat-card"><div class="text-muted small">Resolved</div><div class="stat-number text-success">@resolved</div></div></div>
-
         <div class="col-md-2">
+            <div class="glass-card stat-card">
+                <div class="text-muted small">Pending</div>
+                <div class="stat-number text-warning">@pending</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="glass-card stat-card">
+                <div class="text-muted small">In Progress</div>
+                <div class="stat-number text-primary">@inProgress</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="glass-card stat-card">
+                <div class="text-muted small">Resolved</div>
+                <div class="stat-number text-success">@resolved</div>
+            </div>
+        </div>
+        <div class="col-md-3">
             <a href="/Admin/Archives" class="glass-card stat-card d-flex flex-column justify-content-center align-items-center text-decoration-none border-primary">
                 <i class="bi bi-archive-fill fs-2 text-primary mb-1"></i>
                 <div class="fw-bold text-primary">Archives</div>
             </a>
         </div>
     </div>
+
+    <!-- Search and Filter Section -->
+    <div class="filter-section">
+        <div class="row g-4">
+            <div class="col-md-7">
+                <div class="filter-label">
+                    <i class="bi bi-search me-2"></i>SEARCH INCIDENTS
+                </div>
+                <form asp-action="Dashboard" method="get">
+                    <div class="search-box d-flex">
+                        <input type="text" name="searchTerm" class="form-control border-0"
+                               placeholder="Search by ID, title, reporter, investigator..."
+                               value="@ViewBag.CurrentSearchTerm" />
+                        <input type="hidden" name="statusFilter" value="@ViewBag.SelectedFilter" />
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-2"></i>Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-md-5">
+                <div class="filter-label">
+                    <i class="bi bi-funnel me-2"></i>FILTER BY STATUS
+                </div>
+                <select class="filter-dropdown" onchange="window.location.href = '@Url.Action("Dashboard")?statusFilter=' + this.value + '&searchTerm=@ViewBag.CurrentSearchTerm'">
+                    <option value="">All Statuses</option>
+                    <option value="Pending" selected="@(ViewBag.SelectedFilter == "Pending")">Pending</option>
+                    <option value="Assigned" selected="@(ViewBag.SelectedFilter == "Assigned")">Assigned</option>
+                    <option value="Investigating" selected="@(ViewBag.SelectedFilter == "Investigating")">Investigating</option>
+                    <option value="On Hold" selected="@(ViewBag.SelectedFilter == "On Hold")">On Hold</option>
+                    <option value="Resolved" selected="@(ViewBag.SelectedFilter == "Resolved")">Resolved</option>
+                    <option value="Denied" selected="@(ViewBag.SelectedFilter == "Denied")">Denied</option>
+                    <option value="Unassigned" selected="@(ViewBag.SelectedFilter == "Unassigned")">Unassigned</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Active Filters Display -->
+        @if (!string.IsNullOrEmpty(ViewBag.SelectedFilter) || !string.IsNullOrEmpty(ViewBag.CurrentSearchTerm))
+        {
+            <div class="active-filters">
+                <i class="bi bi-funnel-fill text-primary me-2"></i>
+                <span class="fw-bold text-dark">Active filters:</span>
+
+                @if (!string.IsNullOrEmpty(ViewBag.SelectedFilter))
+                {
+                    <span class="filter-badge">
+                        <i class="bi bi-tag me-1"></i> Status: @ViewBag.SelectedFilter
+                    </span>
+                }
+
+                @if (!string.IsNullOrEmpty(ViewBag.CurrentSearchTerm))
+                {
+                    <span class="filter-badge">
+                        <i class="bi bi-search me-1"></i> "@ViewBag.CurrentSearchTerm"
+                    </span>
+                }
+
+                <a href="@Url.Action("Dashboard")" class="clear-filters">
+                    <i class="bi bi-x-circle me-1"></i>Clear all
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- Results Summary -->
+    <div class="results-summary">
+        <div>
+            <i class="bi bi-file-text me-1"></i>
+            Showing <strong>@Model.Count</strong> incidents
+            @if (!string.IsNullOrEmpty(ViewBag.CurrentSearchTerm))
+            {
+                <span>matching "<strong class="text-primary">@ViewBag.CurrentSearchTerm</strong>"</span>
+            }
+        </div>
+        <div>
+            <span class="text-muted">Default sort: Latest first</span>
+        </div>
+    </div>
+
+    <!-- Main Table -->
     <div class="glass-card p-4">
         <h5 class="fw-bold mb-4">Recent Activity</h5>
         <div class="table-responsive">
             <table class="table align-middle">
                 <thead>
                     <tr>
-                        <th style="width: 35%;">Incident Details</th>
-                        <th style="width: 20%;">Status & Handling</th>
-                        <th style="width: 30%;" class="text-center">Operations</th>
+                        <th style="width: 30%;">Incident Details</th>
+                        <th style="width: 15%;">Status</th>
+                        <th style="width: 15%;">Investigator</th>
+                        <th style="width: 25%;" class="text-center">Operations</th>
                         <th style="width: 15%;" class="text-end pe-3">Priority</th>
                     </tr>
                 </thead>
@@ -157,16 +378,37 @@
                     {
                         <tr id="row-@item.IncidentID" class="@(item.Status == "Resolved" || item.Status == "Denied" ? "table-light opacity-75" : "")">
                             <td>
-                                <div class="fw-bold text-uppercase @(item.Status == "Resolved" || item.Status == "Denied" ? "text-muted" : "")">@item.Title</div>
-                                <div class="text-muted small">ID #@item.IncidentID • @item.CreatedAt.ToString("dd MMM yyyy") • <strong><i class="bi bi-person"></i> @item.ReporterName</strong></div>
+                                <div class="fw-bold text-uppercase @(item.Status == "Resolved" || item.Status == "Denied" ? "text-muted" : "")">
+                                    @item.Title
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="bi bi-hash"></i> #@item.IncidentID •
+                                    <i class="bi bi-calendar"></i> @item.CreatedAt.ToString("dd MMM yyyy") •
+                                    <i class="bi bi-person"></i> @item.ReporterName
+                                </div>
+                                @if (!string.IsNullOrEmpty(ViewBag.CurrentSearchTerm))
+                                {
+                                    <div class="mt-1">
+                                        <span class="badge bg-light text-primary border">
+                                            <i class="bi bi-search"></i> Match found
+                                        </span>
+                                    </div>
+                                }
                             </td>
                             <td>
                                 <span class="status-pill bg-@item.Status.Replace(" ", "-").ToLower()">@item.Status</span>
-                                @if (item.Status != "Pending" && !string.IsNullOrEmpty(item.InvestigatorName))
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(item.InvestigatorName))
                                 {
-                                    <div class="text-muted small mt-1">
-                                        <i class="bi bi-shield-check"></i> Assigned to: @item.InvestigatorName
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-shield-check text-info me-2"></i>
+                                        <span>@item.InvestigatorName</span>
                                     </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Not assigned</span>
                                 }
                             </td>
                             <td class="text-center">
@@ -200,12 +442,26 @@
                                 }
                             </td>
                             <td class="text-end pe-3">
-                                <span class="badge @(item.Priority == "High" || item.Priority == "Critical" ? "bg-danger" : "bg-warning text-dark")">@item.Priority</span>
+                                <span class="badge @(item.Priority == "High" || item.Priority == "Critical" ? "bg-danger" : "bg-warning text-dark")">
+                                    @item.Priority
+                                </span>
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox fs-1 d-block text-muted mb-3"></i>
+                    <h5 class="text-muted">No incidents found</h5>
+                    <p class="text-muted mb-3">Try adjusting your search or filter criteria</p>
+                    <a asp-action="Dashboard" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-arrow-counterclockwise me-2"></i>Clear all filters
+                    </a>
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -214,6 +470,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Chart initialization
         fetch('/Admin/GetChartData').then(r => r.json()).then(data => {
             new Chart(document.getElementById('incidentChart'), {
                 type: 'doughnut',
@@ -221,7 +478,7 @@
                     labels: data.map(d => d.label),
                     datasets: [{
                         data: data.map(d => d.count),
-                        backgroundColor: ['#ffc107', '#0d6efd', '#198754'], 
+                        backgroundColor: ['#ffc107', '#0d6efd', '#198754'],
                         borderWidth: 0
                     }]
                 },
@@ -233,22 +490,73 @@
             });
         });
 
+        // Action functions
         function cancelAssignment(id) {
-            Swal.fire({ title: 'Cancel Assignment?', text: "Resetting to Pending status.", icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes' })
-            .then((result) => { if (result.isConfirmed) $.post('/Admin/Cancel/' + id, function (res) { if (res.success) location.reload(); }); });
+            Swal.fire({
+                title: 'Cancel Assignment?',
+                text: "Resetting to Pending status.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, cancel it'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Cancel/' + id, function (res) {
+                        if (res.success) {
+                            Swal.fire({
+                                title: 'Cancelled!',
+                                text: 'Assignment has been cancelled.',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        }
+                    });
+                }
+            });
         }
 
         function denyIncident(id) {
-            if (confirm("Deny report? This will mark it as Denied and Critical Priority.")) {
-                window.location.href = '/Admin/Deny/' + id;
-            }
+            Swal.fire({
+                title: 'Deny Incident?',
+                text: "This will mark the incident as Denied.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, deny it'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/Admin/Deny/' + id;
+                }
+            });
         }
 
         function archiveIncident(id) {
-            Swal.fire({ title: 'Archive Incident?', text: "Move this report to archives.", icon: 'question', showCancelButton: true, confirmButtonText: 'Yes' })
-            .then((result) => { if (result.isConfirmed) {
-                $.post('/Admin/Remove/' + id, function (res) { if (res.success) location.reload(); });
-            }});
+            Swal.fire({
+                title: 'Archive Incident?',
+                text: "Move this report to archives.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#6c757d',
+                cancelButtonColor: '#dc3545',
+                confirmButtonText: 'Yes, archive it'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Remove/' + id, function (res) {
+                        if (res.success) {
+                            Swal.fire({
+                                title: 'Archived!',
+                                text: 'Incident has been moved to archives.',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => location.reload());
+                        }
+                    });
+                }
+            });
         }
     </script>
 }
